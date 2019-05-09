@@ -1,0 +1,13 @@
+Package: mapaccuracy
+Type: Package
+Title: Unbiased Thematic Map Accuracy and Area
+Version: 0.1.0
+Depends: R (>= 3.0.0)
+Imports: reshape, stats, assertthat, gtools
+Author: Hugo Costa [cre, aut] <hcosta@dgterritorio.pt>
+Maintainer: Hugo Costa <hcosta@dgterritorio.pt>
+Description: Unbiased estimators of overall and per-class thematic map accuracy and area for diverse sampling designs (simple, systematic and stratified) and classification types (hard and fuzzy).
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1.9000
