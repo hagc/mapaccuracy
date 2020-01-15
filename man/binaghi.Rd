@@ -72,9 +72,9 @@ e<-binaghi(r,m) # compare to paper
 ## additional example
 #m<-readRDS("D:/mypapers/11-mapaccuracy/data/fcla.rds")
 #r<-readRDS("D:/mypapers/11-mapaccuracy/data/fref.rds")
-data(fcla)
-data(fref)
-binaghi(fref,fcla)
+#data(fcla)
+#data(fref)
+#binaghi(fref,fcla)
 }
 \references{
 Binaghi, E.; Brivio, P. A.; Ghezzi, P.; Rampini, A. (1999). \href{https://doi.org/10.1016/S0167-8655(99)00061-6}{A fuzzy set-based accuracy assessment of soft classification}. \emph{Pattern Recognit. Lett.}, 20, 935-948.

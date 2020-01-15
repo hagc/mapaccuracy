@@ -5,7 +5,7 @@
 \docType{package}
 
 \title{
-  Overview of the mapaccuracy package
+  Overview of the \pkg{mapaccuracy} package
 }
 
 \description{

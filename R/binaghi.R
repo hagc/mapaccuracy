@@ -67,9 +67,9 @@
 #' ## additional example
 #' #m<-readRDS("D:/mypapers/11-mapaccuracy/data/fcla.rds")
 #' #r<-readRDS("D:/mypapers/11-mapaccuracy/data/fref.rds")
-#' data(fcla)
-#' data(fref)
-#' binaghi(fref,fcla)
+#' #data(fcla)
+#' #data(fref)
+#' #binaghi(fref,fcla)
 #' @export
 binaghi<-function(r, m, margins=TRUE){
 

@@ -24,14 +24,14 @@ Internal functions to be called from within another functions.
 \code{.check_length} checks (tests) if the length of objects match.
 }
 \examples{
-mapaccuracy2:::.check_classes("character", "a")                 # no error found
-mapaccuracy2:::.check_classes(c("character","list"), "a", "a")  # no error found
-mapaccuracy2:::.check_classes(c("character","list"), list("a")) # no error found
+mapaccuracy:::.check_classes("character", "a")                 # no error found
+mapaccuracy:::.check_classes(c("character","list"), "a", "a")  # no error found
+mapaccuracy:::.check_classes(c("character","list"), list("a")) # no error found
 \dontrun{
-  mapaccuracy2:::.check_classes("character", list("a"))         # error (not a character)
+  mapaccuracy:::.check_classes("character", list("a"))         # error (not a character)
 }
 fun<-function(x){
-  mapaccuracy2:::.check_classes("numeric",x)
+  mapaccuracy:::.check_classes("numeric",x)
   print(x+1)
 }
 fun(1)       # no error found
@@ -39,14 +39,14 @@ fun(1)       # no error found
   fun("a")   # error as argument is not numeric
 }
 
-mapaccuracy2:::.check_factors("character", "a")                 # no error found
-mapaccuracy2:::.check_factors(c("character","list"), "a", "a")  # no error found
-mapaccuracy2:::.check_factors(c("character","list"), list("a")) # no error found
+mapaccuracy:::.check_factors("character", "a")                 # no error found
+mapaccuracy:::.check_factors(c("character","list"), "a", "a")  # no error found
+mapaccuracy:::.check_factors(c("character","list"), list("a")) # no error found
 \dontrun{
-  mapaccuracy2:::.check_factors("character", list("a"))         # error (not a character)
+  mapaccuracy:::.check_factors("character", list("a"))         # error (not a character)
 }
 fun<-function(x){
-  mapaccuracy2:::.check_factors("numeric",x)
+  mapaccuracy:::.check_factors("numeric",x)
   print(x+1)
 }
 fun(1)       # no error found
@@ -56,16 +56,16 @@ fun(1)       # no error found
 
 a<-c("a","b","c")
 b<-c("a","b","d")
-mapaccuracy2:::.check_labels(a,a)
-mapaccuracy2:::.check_labels(a,a[1:2])
-mapaccuracy2:::.check_labels(a,a,a)
+mapaccuracy:::.check_labels(a,a)
+mapaccuracy:::.check_labels(a,a[1:2])
+mapaccuracy:::.check_labels(a,a,a)
 \dontrun{
-mapaccuracy2:::.check_labels(a,b)
+mapaccuracy:::.check_labels(a,b)
 }
 
-mapaccuracy2:::.check_length("a", "b")
+mapaccuracy:::.check_length("a", "b")
 \dontrun{
-  mapaccuracy2:::.check_length("a", c("b","b"))
+  mapaccuracy:::.check_length("a", c("b","b"))
 }
 
 }
