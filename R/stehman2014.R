@@ -61,10 +61,10 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE){
   Nh_strata<-unlist(Nh_strata)
   if(is.null(names(Nh_strata))) stop("Nh_strata must be named.", call. = FALSE)
   if(length(names(Nh_strata))>length(unique(names(Nh_strata)))) stop("Repeated names detected in Nh_strata.", call. = FALSE)
-  .check_labels(names(Nh_strata), s, r, m)
-  .check_labels(s, names(Nh_strata))
-  .check_labels(r, names(Nh_strata))
-  .check_length(s, r, m)
+  # mapaccuracy:::.check_labels(names(Nh_strata), s, r, m)
+  mapaccuracy:::.check_labels(s, names(Nh_strata))
+  # mapaccuracy:::.check_labels(r, names(Nh_strata))
+  mapaccuracy:::.check_length(s, r, m)
 
   # covert arguments
   s<-factor(s, levels = names(Nh_strata))

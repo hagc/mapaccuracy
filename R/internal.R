@@ -62,10 +62,10 @@
 #'   mapaccuracy:::.check_length("a", c("b","b"))
 #' }
 #'
-#' @name .mapaccuracy-internal
+#' @name internal.mapaccuracy
 NULL
 
-#' @rdname .mapaccuracy-internal
+#' @rdname internal.mapaccuracy
 .check_classes<-function(x, ...){
 
   # check argument classes
@@ -81,7 +81,7 @@ NULL
 
 }
 
-#' @rdname .mapaccuracy-internal
+#' @rdname internal.mapaccuracy
 .check_factors<-function(x, ...){
 
   # check argument factors
@@ -97,7 +97,7 @@ NULL
 
 }
 
-#' @rdname .mapaccuracy-internal
+#' @rdname internal.mapaccuracy
 .check_labels<-function(x, ...){
   x<-unique(x)
   arguments=sapply(list(...),unique)
@@ -106,7 +106,7 @@ NULL
   }
 }
 
-#' @rdname .mapaccuracy-internal
+#' @rdname internal.mapaccuracy
 .check_length<-function(...){
   arguments<-list(...)
   if(length(arguments)>1){

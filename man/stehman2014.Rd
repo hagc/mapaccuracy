@@ -2,20 +2,21 @@
 % Please edit documentation in R/stehman2014.R
 \name{stehman2014}
 \alias{stehman2014}
-\title{Thematic map accuracy and area under stratified random sampling when the strata differ from the map classes.}
+\title{Thematic 2 map accuracy and area under stratified random sampling when the strata differ from the map classes.}
 \usage{
 stehman2014(s, r, m, Nh_strata, margins = TRUE)
 }
 \arguments{
 \item{s}{character vector. Strata class labels. The object will be coarsed to factor.}
 
-\item{r}{character vector. Reference class labels. The object will be coarsed to factor.}
+\item{r}{character vector. Reference class labels. The object will be coerced to factor.}
 
-\item{m}{character vector. Map class labels. The object will be coarsed to factor.}
+\item{m}{character vector. Map class labels. The object will be coerced to factor.}
 
 \item{Nh_strata}{numeric vector. Area of the classes in the strata. It must be named (see details).}
 
-\item{margins}{logical. If FALSE, the error matrix produced includes no margins (sum of the rows and columns).}
+\item{margins}{logical. If FALSE, the error matrix produced includes no margins (sum of the 
+rows and columns).}
 }
 \value{
 A list with the estimates and error matrix.

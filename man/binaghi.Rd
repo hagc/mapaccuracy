@@ -11,7 +11,8 @@ binaghi(r, m, margins = TRUE)
 
 \item{m}{dataframe or matrix. Membership degrees of a soft classification (rows relate to pixels/points and columns to class membership degrees). The columns must be named (see details).}
 
-\item{margins}{logical. If FALSE, the error matrix produced includes no margins (sum of the rows and columns).}
+\item{margins}{logical. If FALSE, the error matrix produced includes no margins (sum of the 
+rows and columns).}
 }
 \value{
 A list with the estimates and matrices, and a csv if defined.
