@@ -77,7 +77,6 @@ stehman2014_2<-function(s, r, m, Nh_strata, margins=TRUE, order = sort(unique(r)
   mapaccuracy:::.check_labels(names(Nh_strata), s)
   mapaccuracy:::.check_labels(s, names(Nh_strata))
   mapaccuracy:::.check_labels(r, m)
-  mapaccuracy:::.check_labels(m, r)
   mapaccuracy:::.check_length(s, r, m)
 
   # covert arguments
