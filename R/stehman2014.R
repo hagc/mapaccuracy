@@ -40,7 +40,7 @@
 #' r<-c(rep("A",5), "C", "B", "A", "B", "C", "A", rep("B",5),
 #'               "A", "A", "B", "B", rep("C",5), "D", "D", "B", "B", "A", rep("D",7), "C", "C", "B")
 #' Nh_strata<-c("A"=40000, "B"=30000, "C"=20000, "D"=10000) 
-#' e<-stehman2014_3(s, r, m, Nh_strata)
+#' e<-stehman2014(s, r, m, Nh_strata)
 #' e$area[1]                  # Proportion of area of class A (compare with paper in p. 4932)
 #' e$area[3]                  # Proportion of area of class C (p. 4932)
 #' e$OA                       # Overall accuracy (p. 4932)
@@ -52,9 +52,11 @@
 #' e$SEoa                     # SE for overall accuracy (p. 4936)
 #' e$SEua[2]                  # SE for user's accuracy of class B (p. 4936)
 #' e$SEpa[2]                  # SE for producer's accuracy of class B (p. 4936)
+#' 
 #'
 #' # change class order
-#' stehman2014_3(s, m, r, Nh_strata, order=c("D","C","B","A"))
+#' stehman2014(s, m, r, Nh_strata, order=c("D","C","B","A"))
+#' 
 #' 
 #' # When the number of strata differs from the number of map classes
 #' s<-c(rep("A",5), rep("AA",5), rep("B",10), rep("C",10), rep("D",10))
@@ -62,20 +64,11 @@
 #' r<-c(rep("A",4), "C", rep("A",4), "C", "A", rep("B",5),
 #'      "A", "A", "B", "B", rep("C",5), "D", "D", "B", "B", "A", rep("D",7), "C", "C", "B")
 #' Nh_strata<-c("A"=20000, "AA"=20000, "B"=30000, "C"=20000, "D"=10000)
-#' stehman2014_3(s, r, m, Nh_strata)
+#' stehman2014(s, r, m, Nh_strata)
 #' 
-#' #############################################################################################
-#' Nh_strata<-readRDS("C:/Users/hugo_/Dropbox/backups/Nh_strata.rds")
-#' stratum  <-readRDS("C:/Users/hugo_/Dropbox/backups/stratum.rds")
-#' pts_col  <-readRDS("C:/Users/hugo_/Dropbox/backups/pts_col.rds")
-#' 
-#' e<-stehman2014_3(s=stratum,
-#'           r=pts_col@data$ref,
-#'           m=pts_col@data[, "lulc_0_n3"],
-#'           Nh_strata=Nh_strata)
 #' 
 #' @export
-stehman2014_3<-function(s, r, m, Nh_strata, margins=TRUE, order = sort(unique(r))){
+stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order = sort(unique(r))){
 
   # check arguments
   s<-unlist(s)
