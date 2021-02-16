@@ -79,10 +79,10 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order = sort(unique(r)))
   if(length(names(Nh_strata))>length(unique(names(Nh_strata)))) stop("Repeated names detected in Nh_strata.", call. = FALSE)
   
   # compare arguments
-  mapaccuracy:::.check_labels(names(Nh_strata), s)
+  .check_labels(names(Nh_strata), s)
   Nh_strata<-Nh_strata[names(Nh_strata)%in%s] # keep only the strata found in s
-  mapaccuracy:::.check_labels(r, m)
-  mapaccuracy:::.check_length(s, r, m)
+  .check_labels(r, m)
+  .check_length(s, r, m)
 
   # covert arguments
   s<-factor(s, levels = names(Nh_strata))

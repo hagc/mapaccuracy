@@ -1,6 +1,6 @@
 # Description
 
-Unbiased estimators of overall and per-class thematic map accuracy and area for diverse sampling desings (simple, systematic and stratified) and classification types (hard and fuzzy). Implemented estimators are described here:
+Unbiased estimators of overall and per-class thematic map accuracy and area for diverse sampling designs (simple, systematic and stratified). Implemented estimators are described here:
 
 * Olofsson, P.; Foody, G. M.; Herold, M.; Stehman, S. V.; Woodcock, C. E.; Wulder, M. A. (2014). Good practices for estimating area and assessing accuracy of land change. Remote Sens. Environ., 148, 42–57, doi:10.1016/j.rse.2014.02.015.
 
