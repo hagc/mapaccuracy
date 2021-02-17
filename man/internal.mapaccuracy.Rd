@@ -30,56 +30,8 @@ Internal functions to be called from within another functions.
 \details{
 \code{.check_classes} checks (tests) if the arguments passed to functions comply with their expected classes.
 
-\code{.check_factors} delete?.
-
 \code{.check_labels} checks (tests) if the character arguments passed to functions comply with their expected content.
 
 \code{.check_length} checks (tests) if the length of objects match.
-}
-\examples{
-mapaccuracy:::.check_classes("character", "a")                 # no error found
-mapaccuracy:::.check_classes(c("character","list"), "a", "a")  # no error found
-mapaccuracy:::.check_classes(c("character","list"), list("a")) # no error found
-\dontrun{
-  mapaccuracy:::.check_classes("character", list("a"))         # error (not a character)
-}
-fun<-function(x){
-  mapaccuracy:::.check_classes("numeric",x)
-  print(x+1)
-}
-fun(1)       # no error found
-\dontrun{
-  fun("a")   # error as argument is not numeric
-}
-
-mapaccuracy:::.check_factors("character", "a")                 # no error found
-mapaccuracy:::.check_factors(c("character","list"), "a", "a")  # no error found
-mapaccuracy:::.check_factors(c("character","list"), list("a")) # no error found
-\dontrun{
-  mapaccuracy:::.check_factors("character", list("a"))         # error (not a character)
-}
-fun<-function(x){
-  mapaccuracy:::.check_factors("numeric",x)
-  print(x+1)
-}
-fun(1)       # no error found
-\dontrun{
-  fun("a")   # error as argument is not numeric
-}
-
-a<-c("a","b","c")
-b<-c("a","b","d")
-mapaccuracy:::.check_labels(a,a)
-mapaccuracy:::.check_labels(a,a[1:2])
-mapaccuracy:::.check_labels(a,a,a)
-\dontrun{
-mapaccuracy:::.check_labels(a,b)
-}
-
-mapaccuracy:::.check_length("a", "b")
-\dontrun{
-  mapaccuracy:::.check_length("a", c("b","b"))
-}
-
 }
 \keyword{internal}
