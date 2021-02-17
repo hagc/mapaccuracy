@@ -82,7 +82,7 @@ stehman2014(s, r, m, Nh_strata)
 
 }
 \references{
-Stehman, S. V. (2014).\href{https://doi.org/10.1080/01431161.2014.930207}{Estimating area and map accuracy for stratified random sampling when the strata are different from the map classes}. \emph{Int. J. Remote Sens.}, 35, 4923-4939.
+Stehman, S. V. (2014). Estimating area and map accuracy for stratified random sampling when the strata are different from the map classes. \emph{Int. J. Remote Sens.}, 35, 4923-4939.
 }
 \author{
 Hugo Costa

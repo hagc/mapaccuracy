@@ -33,9 +33,9 @@
 #' \item{matrix}{confusion error (area proportion). Rows and columns represent map and reference class labels, respectively}
 #'
 #' @references
-#' Olofsson, P.; Foody, G. M.; Stehman, S. V.; Woodcock, C. E. (2013). \href{https://doi.org/10.1016/j.rse.2012.10.031}{Making better use of accuracy data in land change studies: Estimating accuracy and area and quantifying uncertainty using stratified estimation}. \emph{Remote Sens. Environ.}, 129, 122-131.
+#' Olofsson, P.; Foody, G. M.; Stehman, S. V.; Woodcock, C. E. (2013). Making better use of accuracy data in land change studies: Estimating accuracy and area and quantifying uncertainty using stratified estimation. \emph{Remote Sens. Environ.}, 129, 122-131.
 #'
-#' Olofsson, P.; Foody, G. M.; Herold, M.; Stehman, S. V.; Woodcock, C. E.; Wulder, M. A. (2014). \href{https://doi.org/10.1016/j.rse.2014.02.015}{Good practices for estimating area and assessing accuracy of land change}. \emph{Remote Sens. Environ.}, 148, 42-57.
+#' Olofsson, P.; Foody, G. M.; Herold, M.; Stehman, S. V.; Woodcock, C. E.; Wulder, M. A. (2014). Good practices for estimating area and assessing accuracy of land change. \emph{Remote Sens. Environ.}, 148, 42-57.
 #'
 #' @author Hugo Costa
 #'
