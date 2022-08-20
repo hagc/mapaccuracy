@@ -272,7 +272,7 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order = sort(unique(r)))
   
   Vu<-NULL
   for(i in 1:length(classes2)){
-    Vu<-c(Vu, eq28(R=U[i], X=R_U_dominator[i], Nh=Nh_strata, nh=nh[i], 
+    Vu<-c(Vu, eq28(R=U[i], X=R_U_dominator[i], Nh=Nh_strata, nh=nh, 
                    vary=tvar[,paste0("yu_U",i)], varx=tvar[,paste0("xu_U",i)], cov=temp1[,i]))
   }
   SEu<-sqrt(Vu)
@@ -281,7 +281,7 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order = sort(unique(r)))
   # Standard error (SE) for producer's accuracy
   Vp<-NULL
   for(i in 1:length(classes3)){
-    Vp<-c(Vp, eq28(R=P[i], X=R_P_dominator[i], Nh=Nh_strata, nh=nh[i], 
+    Vp<-c(Vp, eq28(R=P[i], X=R_P_dominator[i], Nh=Nh_strata, nh=nh, 
                    vary=tvar[,paste0("yu_P",i)], varx=tvar[,paste0("xu_P",i)], cov=temp2[,i]))
   }
   SEp<-sqrt(Vp)

@@ -102,7 +102,7 @@
 #' qnorm(0.975)*e$SEoa             # 95% CI width
 #'
 #' # compare to paper, right-hand of p. 54:
-#' e$area[1]*sum(Nh)/10000         # deforestation in hectares
+#' e$area[1]*sum(Nh)/10000                 # deforestation in hectares
 #' qnorm(0.975)*e$SEa[1]*sum(Nh)/10000     # 95% CI width in hectares
 #' e$area[2]*sum(Nh)/10000                 # forest gain in hectares
 #' qnorm(0.975)*e$SEa[2]*sum(Nh)/10000     # 95% CI width in hectares
