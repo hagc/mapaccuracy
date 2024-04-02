@@ -5,8 +5,6 @@
 #'
 #' Argument \code{Nh} must be named to explicitly and clearly identify the class that each area refers to.
 #' The order of \code{Nh} will be used for displaying the results.
-#'
-#' The labels included in \code{r} and \code{m} must match among them and the names of \code{Nh}.
 #' 
 #' In the error matrix returned, the entries corresponding to no observed cases will present
 #' \code{NA} rather than \code{0}. This is to emphasize the difference between the absence of cases
@@ -17,11 +15,10 @@
 #' @param m character vector. Map class labels. The object will be coerced to factor.
 #' @param Nh numeric vector. Area, number of pixels, or proportion of the classes in the map. 
 #'           It must be named (see details).
-#' @param margins logical. If FALSE, the error matrix produced includes no margins (sum of the 
+#' @param margins logical. If \code{FALSE}, the error matrix produced includes no margins (sum of the 
 #'                rows and columns).
-#' @param csv_filepath (optional) character. Write results to a csv file (not implemented)
 #'
-#' @return A list with the estimates and error matrix, and a csv if defined.
+#' @return A list with the estimates and error matrix.
 #' \item{OA}{overall accuracy}
 #' \item{UA}{user's accuracy}
 #' \item{PA}{producer's accuracy}
@@ -111,11 +108,30 @@
 #' e$area[4]*sum(Nh)/10000                 # stable non-forest in hectares
 #' qnorm(0.975)*e$SEa[4]*sum(Nh)/10000     # 95% CI width in hectares
 #'
+#'
 #' # change class order
-#' order<-c(4,2,1,3)
 #' olofsson(r, m, Nh[c(4,2,1,3)])
+#' 
+#' 
+#' # m (map) may include classes not found in r (reference)
+#' r<-c(rep("1",102),rep("2",280),rep("3",118))
+#' m<-c(rep("1",97) ,rep("2",3), rep("3",2),rep("2",279),
+#'      "3",rep("1",3),rep("2",18),rep("3",95), rep("4",2))
+#' Nh<-c("1"=22353, "2"=1122543, "3"=610228, "4"=10)
+#' olofsson(r, m, Nh)
+#' 
+#' # r (reference) may include classes not found in m (map)
+#' r<-c(rep("1",102),rep("2",280),rep("3",116),rep("4",2))
+#' m<-c(rep("1",97) ,rep("2",3), rep("3",2),rep("2",279),
+#'      "3",rep("1",3),rep("2",18),rep("3",97))
+#' Nh<-c("1"=22353, "2"=1122543, "3"=610228)
+#' olofsson(r, m, Nh)
+#' 
+#' # can add classes not found neither in r nor m
+#' Nh<-c(Nh, "9"=0)
+#' olofsson(r, m, Nh)
 #' @export
-olofsson<-function(r, m, Nh, margins=TRUE, csv_filepath){
+olofsson<-function(r, m, Nh, margins=TRUE){
 
   # check arguments
   r<-unlist(r)
@@ -123,11 +139,15 @@ olofsson<-function(r, m, Nh, margins=TRUE, csv_filepath){
   Nh<-unlist(Nh)
   if(is.null(names(Nh))) stop("Nh must be named.", call. = FALSE)
   if(length(names(Nh))>length(unique(names(Nh)))) stop("Repeated names detected in Nh.", call. = FALSE)
-  .check_labels(names(Nh), r, m)
-  .check_labels(r, names(Nh))
+  .check_labels(names(Nh), m)
   .check_length(r,m)
 
   # convert arguments
+  temp<-as.character(setdiff(r,names(Nh)))
+  if(length(temp)>0){
+    Nh<-c(Nh, rep(0, length(temp)))
+    names(Nh)[names(Nh)==""]<-temp
+  }
   r<-factor(r, levels = names(Nh))
   m<-factor(m, levels = names(Nh))
 
@@ -143,16 +163,19 @@ olofsson<-function(r, m, Nh, margins=TRUE, csv_filepath){
 
   # confusion matrix (estimated area proportions)
   props<-prop.table(matrix,1)
+  props[temp, temp]<-0         # when r (reference) has a class not found in m (map)
+  props[is.nan(props)]<-NA
   for(j in 1:q){
     props[j,]<-Wh[j]*props[j,]
   }
 
   # Accuracy and area estimates
   OA<-sum(diag(props),na.rm=T)
-  UA<-diag(props)/rowSums(props)
-  PA<-diag(props)/colSums(props)
-  # tarea<-A*colSums(props)
-  tarea<-colSums(props)
+  UA<-diag(props)/rowSums(props, na.rm = TRUE)
+  PA<-diag(props)/colSums(props, na.rm = TRUE)
+  UA[is.nan(UA)]<-NA
+  PA[is.nan(PA)]<-NA
+  tarea<-colSums(props, na.rm = TRUE)
 
 
   # standard error of OA
@@ -171,8 +194,9 @@ olofsson<-function(r, m, Nh, margins=TRUE, csv_filepath){
   VAR_UA<-NULL
   for(j in 1:q){
     temp<-UA[j]*(1-UA[j])/(nh[j]-1)
-    if(is.na(temp)){temp<-0}
-    if(is.infinite(temp)){temp<-0}
+    # if(is.na(temp)){temp<-0}
+    # if(is.infinite(temp)){temp<-0}
+    temp[is.nan(temp)]<-0
     VAR_UA<-c(VAR_UA, temp)
   }
   SEua<-sqrt(VAR_UA)
@@ -215,17 +239,13 @@ olofsson<-function(r, m, Nh, margins=TRUE, csv_filepath){
     b<-matrix[,j]/nh
     c<-(1-matrix[,j]/nh)
     d<-nh-1
-    VAR_A[[j]]<-sum(a*(b*c/d))
+    VAR_A[[j]]<-sum(a*(b*c/d), na.rm = TRUE)
   }
   VAR_A<-unlist(VAR_A)
   SEa<-sqrt(VAR_A)
   # SEa<-A*SEa
   names(SEa)<-names(Nh)
 
-  # gather calculations together
-  if(!missing(csv_filepath)){
-    # export as a table to csv
-  }
 
   # Add margins to confusion matrix (potentially useful for exporting only)
   props[matrix==0]<-NA

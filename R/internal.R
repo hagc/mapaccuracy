@@ -53,8 +53,8 @@ NULL
 #' @rdname internal.mapaccuracy
 .check_labels<-function(x, ...){
   x<-unique(x)
-  arguments=sapply(list(...),unique)
-  if(!all(sapply(arguments,'%in%',x))){
+  arguments<-sapply(list(...),unique)
+  if(!all(unlist(sapply(arguments,'%in%', x)))){
     stop("Arguments should include only: ", paste(x,collapse = ", "), call. = FALSE)
   }
 }
@@ -63,7 +63,7 @@ NULL
 .check_length<-function(...){
   arguments<-list(...)
   if(length(arguments)>1){
-    length<-lapply(arguments,length)
-    if(!do.call(assertthat::are_equal,length)) stop("Length of arguments differ.", call. = FALSE)
+    lengths<-sapply(arguments,length)
+    if(length(unique(lengths))>1) stop("Check the length of class labels.", call. = FALSE)
   }
 }

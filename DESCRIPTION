@@ -1,9 +1,9 @@
 Package: mapaccuracy
 Type: Package
 Title: Unbiased Thematic Map Accuracy and Area
-Version: 0.1.1
+Version: 0.1.2
 Depends: R (>= 3.0.0)
-Imports: stats, assertthat
+Imports: stats
 Authors@R: person(given = "Hugo",
                   family = "Costa",
                   role = c("aut", "cre"),
@@ -12,4 +12,4 @@ Authors@R: person(given = "Hugo",
 Description: Unbiased estimators of overall and per-class thematic map accuracy and area published in Olofsson et al. (2014) <doi:10.1016/j.rse.2014.02.015> and Stehman (2014) <doi:10.1080/01431161.2014.930207>.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.1

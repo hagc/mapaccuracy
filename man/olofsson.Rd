@@ -4,7 +4,7 @@
 \alias{olofsson}
 \title{Thematic map accuracy and area.}
 \usage{
-olofsson(r, m, Nh, margins = TRUE, csv_filepath)
+olofsson(r, m, Nh, margins = TRUE)
 }
 \arguments{
 \item{r}{character vector. Reference class labels. The object will be coerced to factor.}
@@ -14,13 +14,11 @@ olofsson(r, m, Nh, margins = TRUE, csv_filepath)
 \item{Nh}{numeric vector. Area, number of pixels, or proportion of the classes in the map. 
 It must be named (see details).}
 
-\item{margins}{logical. If FALSE, the error matrix produced includes no margins (sum of the 
+\item{margins}{logical. If \code{FALSE}, the error matrix produced includes no margins (sum of the 
 rows and columns).}
-
-\item{csv_filepath}{(optional) character. Write results to a csv file (not implemented)}
 }
 \value{
-A list with the estimates and error matrix, and a csv if defined.
+A list with the estimates and error matrix.
 \item{OA}{overall accuracy}
 \item{UA}{user's accuracy}
 \item{PA}{producer's accuracy}
@@ -38,8 +36,6 @@ producer's accuracy, user's accuracy, and area. Includes precision estimates.
 \details{
 Argument \code{Nh} must be named to explicitly and clearly identify the class that each area refers to.
 The order of \code{Nh} will be used for displaying the results.
-
-The labels included in \code{r} and \code{m} must match among them and the names of \code{Nh}.
 
 In the error matrix returned, the entries corresponding to no observed cases will present
 \code{NA} rather than \code{0}. This is to emphasize the difference between the absence of cases
@@ -118,9 +114,28 @@ qnorm(0.975)*e$SEa[3]*sum(Nh)/10000     # 95\% CI width in hectares
 e$area[4]*sum(Nh)/10000                 # stable non-forest in hectares
 qnorm(0.975)*e$SEa[4]*sum(Nh)/10000     # 95\% CI width in hectares
 
+
 # change class order
-order<-c(4,2,1,3)
 olofsson(r, m, Nh[c(4,2,1,3)])
+
+
+# m (map) may include classes not found in r (reference)
+r<-c(rep("1",102),rep("2",280),rep("3",118))
+m<-c(rep("1",97) ,rep("2",3), rep("3",2),rep("2",279),
+     "3",rep("1",3),rep("2",18),rep("3",95), rep("4",2))
+Nh<-c("1"=22353, "2"=1122543, "3"=610228, "4"=10)
+olofsson(r, m, Nh)
+
+# r (reference) may include classes not found in m (map)
+r<-c(rep("1",102),rep("2",280),rep("3",116),rep("4",2))
+m<-c(rep("1",97) ,rep("2",3), rep("3",2),rep("2",279),
+     "3",rep("1",3),rep("2",18),rep("3",97))
+Nh<-c("1"=22353, "2"=1122543, "3"=610228)
+olofsson(r, m, Nh)
+
+# can add classes not found neither in r nor m
+Nh<-c(Nh, "9"=0)
+olofsson(r, m, Nh)
 }
 \references{
 Olofsson, P.; Foody, G. M.; Stehman, S. V.; Woodcock, C. E. (2013). Making better use of accuracy data in land change studies: Estimating accuracy and area and quantifying uncertainty using stratified estimation. \emph{Remote Sens. Environ.}, 129, 122-131.

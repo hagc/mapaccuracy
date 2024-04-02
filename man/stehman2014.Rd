@@ -5,7 +5,7 @@
 \title{Thematic map accuracy and area under stratified random sampling when the strata differ from 
 the map classes.}
 \usage{
-stehman2014(s, r, m, Nh_strata, margins = TRUE, order = sort(unique(r)))
+stehman2014(s, r, m, Nh_strata, margins = TRUE, order)
 }
 \arguments{
 \item{s}{character vector. Strata class labels. The object will be coerced to factor.}
@@ -16,10 +16,11 @@ stehman2014(s, r, m, Nh_strata, margins = TRUE, order = sort(unique(r)))
 
 \item{Nh_strata}{numeric vector. Number of pixels forming each stratum. It must be named (see details).}
 
-\item{margins}{logical. If FALSE, the error matrix produced includes no margins (sum of the 
+\item{margins}{logical. If \code{FALSE}, the error matrix produced includes no margins (sum of the 
 rows and columns).}
 
-\item{order}{character vector. Order of the classes to be displayed in the results.}
+\item{order}{(optional) character vector. Classes to be displayed in the results and their sequence.
+If missing, equal to \code{sort(unique(c(r,m)))}.}
 }
 \value{
 A list with the estimates and error matrix.
@@ -39,7 +40,8 @@ accuracy, user's accuracy, and area. Includes precision estimates.
 }
 \details{
 Argument \code{Nh_strata} must be named to explicitly and clearly identify the stratum that 
-each entry refers to.
+each entry refers to. The names of \code{Nh_strata} are expected to match the strata class 
+labels of argument \code{s}.
 
 In the error matrix returned, the entries corresponding to no observed cases will present
 \code{NA} rather than 0. This is to emphasize the difference between the absence of cases
@@ -50,10 +52,12 @@ zero) and thus possibly rounded to zero. However, \code{NA} means zero proportio
 # Numerical example in Stheman (2014)
 s<-c(rep("A",10), rep("B",10), rep("C",10), rep("D",10))
 m<-c(rep("A",7), rep("B",3), "A", rep("B",11), rep("C",6), "B", "B", rep("D",10))
-r<-c(rep("A",5), "C", "B", "A", "B", "C", "A", rep("B",5),
-              "A", "A", "B", "B", rep("C",5), "D", "D", "B", "B", "A", rep("D",7), "C", "C", "B")
-Nh_strata<-c("A"=40000, "B"=30000, "C"=20000, "D"=10000) 
+r<-c(rep("A",5), "C", "B", "A", "B", "C", "A", rep("B",5), "A", "A", "B", 
+     "B", rep("C",5), "D", "D", "B", "B", "A", rep("D",7), "C", "C", "B")
+Nh_strata<-c(40000, 30000, 20000, 10000)
+names(Nh_strata)<-c("A", "B", "C", "D")
 e<-stehman2014(s, r, m, Nh_strata)
+
 e$area[1]                  # Proportion of area of class A (compare with paper in p. 4932)
 e$area[3]                  # Proportion of area of class C (p. 4932)
 e$OA                       # Overall accuracy (p. 4932)
@@ -66,20 +70,26 @@ e$SEoa                     # SE for overall accuracy (p. 4936)
 e$SEua[2]                  # SE for user's accuracy of class B (p. 4936)
 e$SEpa[2]                  # SE for producer's accuracy of class B (p. 4936)
 
-
 # change class order
-stehman2014(s, m, r, Nh_strata, order=c("D","C","B","A"))
+stehman2014(s, r, m, Nh_strata, order=c("D","C","B","A"))
 
-
-# When the number of strata differs from the number of map classes
-s<-c(rep("A",5), rep("AA",5), rep("B",10), rep("C",10), rep("D",10))
-m<-c(rep("A",4), "B", rep("A",4), "B", "A", rep("B",11), rep("C",6), "B", "B", rep("D",10))
-r<-c(rep("A",4), "C", rep("A",4), "C", "A", rep("B",5),
-     "A", "A", "B", "B", rep("C",5), "D", "D", "B", "B", "A", rep("D",7), "C", "C", "B")
-Nh_strata<-c("A"=20000, "AA"=20000, "B"=30000, "C"=20000, "D"=10000)
+# the number (and name) of strata and map classes may differ
+s<-c(rep("a",5), rep("aa",5), rep("b",10), rep("c",10), rep("d",10))
+Nh_strata<-c("a"=20000, "aa"=20000, "b"=30000, "c"=20000, "d"=10000)
 stehman2014(s, r, m, Nh_strata)
 
+# m (map) may include classes not found in r (reference)
+m<-c(rep("A",7), rep("B",3), "A", rep("B",11), rep("C",6), "B", "B", rep("D",9), "XX")
+stehman2014(s, r, m, Nh_strata)
 
+# r (reference) may include classes not found in m (map)
+m<-c(rep("A",7), rep("B",3), "A", rep("B",11), rep("C",6), "B", "B", rep("D",10))
+r<-c(rep("A",5), "C", "B", "A", "B", "C", "A", rep("B",5), "A", "A", "B",
+     "B", rep("C",5), "D", "D", "B", "B", "A", rep("D",7), "C", "C", "YY")
+stehman2014(s, r, m, Nh_strata)
+
+# can add classes not found neither in r nor m
+stehman2014(s, r, m, Nh_strata, order=c("A","B","C","D","YY","ZZ"))
 }
 \references{
 Stehman, S. V. (2014). Estimating area and map accuracy for stratified random sampling when the strata are different from the map classes. \emph{Int. J. Remote Sens.}, 35, 4923-4939.
