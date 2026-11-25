@@ -4,7 +4,7 @@
 \alias{olofsson}
 \title{Thematic map accuracy and area.}
 \usage{
-olofsson(r, m, Nh, margins = TRUE)
+olofsson(r, m, Nh, margins = TRUE, w)
 }
 \arguments{
 \item{r}{character vector. Reference class labels. The object will be coerced to factor.}
@@ -16,6 +16,8 @@ It must be named (see details).}
 
 \item{margins}{logical. If \code{FALSE}, the error matrix produced includes no margins (sum of the 
 rows and columns).}
+
+\item{w}{numeric vector (optional). Observation weights (values greater than zero).}
 }
 \value{
 A list with the estimates and error matrix.
@@ -27,7 +29,7 @@ A list with the estimates and error matrix.
 \item{SEua}{standard error of UA}
 \item{SEpa}{standard error of PA}
 \item{SEa}{standard error of area proportion}
-\item{matrix}{confusion error (area proportion). Rows and columns represent map and reference class labels, respectively}
+\item{matrix}{error matrix (area proportion). Rows and columns represent map and reference class labels, respectively}
 }
 \description{
 Implements the estimators described in Olofsson \emph{et al}. (2013, 2014) for overall accuracy,
@@ -36,6 +38,10 @@ producer's accuracy, user's accuracy, and area. Includes precision estimates.
 \details{
 Argument \code{Nh} must be named to explicitly and clearly identify the class that each area refers to.
 The order of \code{Nh} will be used for displaying the results.
+
+Argument \code{w} is optional and accepts (positive) weights for each of the sample units.
+If used, it has impact on all estimates (overall accuracy, producer's accuracy, user's
+accuracy, area and error matrix) and on their standard errors.
 
 In the error matrix returned, the entries corresponding to no observed cases will present
 \code{NA} rather than \code{0}. This is to emphasize the difference between the absence of cases
@@ -136,6 +142,9 @@ olofsson(r, m, Nh)
 # can add classes not found neither in r nor m
 Nh<-c(Nh, "9"=0)
 olofsson(r, m, Nh)
+
+# sampling units can be weighted
+olofsson(r, m, Nh, w=1:length(m))
 }
 \references{
 Olofsson, P.; Foody, G. M.; Stehman, S. V.; Woodcock, C. E. (2013). Making better use of accuracy data in land change studies: Estimating accuracy and area and quantifying uncertainty using stratified estimation. \emph{Remote Sens. Environ.}, 129, 122-131.

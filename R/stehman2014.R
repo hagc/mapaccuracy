@@ -6,7 +6,21 @@
 #' 
 #' Argument \code{Nh_strata} must be named to explicitly and clearly identify the stratum that 
 #' each entry refers to. The names of \code{Nh_strata} are expected to match the strata class 
-#' labels of argument \code{s}.
+#' labels of argument \code{s}. 
+#' 
+#' Argument \code{Nh_strata} must be the number of sampling units (e.g., pixels) in each 
+#' stratum, and not the area (e.g., in square meters or hectares) or the proportion of the 
+#' strata. The estimates (overall accuracy, user's accuracy, producer's accuracy, area and error 
+#' matrix) depend only on the relative size of the strata and are not affected by this choice. 
+#' The standard errors are, because the finite population correction compares the sample size 
+#' with the number of sampling units in each stratum. Other units produce incorrect standard 
+#' errors. If a stratum has more sample units than \code{Nh_strata}, a warning is issued and 
+#' the standard errors are not valid (possibly \code{NaN}). If only the areas are available, 
+#' divide them by the area of a sampling unit.
+#' 
+#' Argument \code{w} is optional and accepts (positive) weights for each of the sample units.
+#' If used, it has impact on all estimates (overall accuracy, producer's accuracy, user's
+#' accuracy, area and error matrix) and on their standard errors.
 #' 
 #' In the error matrix returned, the entries corresponding to no observed cases will present
 #' \code{NA} rather than 0. This is to emphasize the difference between the absence of cases
@@ -15,7 +29,7 @@
 #'
 #' @param s character vector. Strata class labels. The object will be coerced to factor.
 #' @inheritParams olofsson
-#' @param Nh_strata numeric vector. Number of pixels forming each stratum. It must be named (see details).
+#' @param Nh_strata numeric vector. Number of sampling units (e.g., pixels) forming each stratum. It must be named (see details).
 #' @param order (optional) character vector. Classes to be displayed in the results and their sequence.
 #' If missing, equal to \code{sort(unique(c(r,m)))}.
 #'
@@ -28,7 +42,7 @@
 #' \item{SEua}{standard error of UA}
 #' \item{SEpa}{standard error of PA}
 #' \item{SEa}{standard error of area proportion}
-#' \item{matrix}{confusion error (area proportion). Rows and columns represent map and reference class labels, respectively}
+#' \item{matrix}{error matrix (area proportion). Rows and columns represent map and reference class labels, respectively}
 #'
 #' @references
 #' Stehman, S. V. (2014). Estimating area and map accuracy for stratified random sampling when the strata are different from the map classes. \emph{Int. J. Remote Sens.}, 35, 4923-4939.
@@ -36,7 +50,7 @@
 #' @author Hugo Costa
 #'
 #' @examples
-#' # Numerical example in Stheman (2014)
+#' # Numerical example in Stehman (2014)
 #' s<-c(rep("A",10), rep("B",10), rep("C",10), rep("D",10))
 #' m<-c(rep("A",7), rep("B",3), "A", rep("B",11), rep("C",6), "B", "B", rep("D",10))
 #' r<-c(rep("A",5), "C", "B", "A", "B", "C", "A", rep("B",5), "A", "A", "B", 
@@ -77,8 +91,12 @@
 #' 
 #' # can add classes not found neither in r nor m
 #' stehman2014(s, r, m, Nh_strata, order=c("A","B","C","D","YY","ZZ"))
+#' 
+#' # sampling units can be weighted
+#' stehman2014(s, r, m, Nh_strata, w=1:length(m))
+#' 
 #' @export
-stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
+stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order, w){
 
   # check arguments
   s<-unlist(s)
@@ -93,7 +111,7 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
   Nh_strata<-Nh_strata[names(Nh_strata)%in%s] # keep only the strata found in s
   .check_length(s, r, m)
 
-  # covert arguments
+  # missing arguments
   if(missing(order)){
     order<-sort(union(r, m))
   }else{
@@ -102,6 +120,12 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
       message<-"Argument 'order' must include the following label(s): "
       stop(message, paste(temp, collapse = "; "), call. = FALSE)
     }
+  }
+  if(!missing(w)){
+    weights<-as.numeric(w)
+    if(length(weights)!=length(m)) stop("'w' must have the same length as 'm'.", call. = FALSE)
+    if(any(is.na(weights))) stop("NA detected in 'w'.", call. = FALSE)
+    if(any(!is.finite(weights) | weights<=0)) stop("'w' must contain finite positive values.", call. = FALSE)
   }
   s<-factor(s, levels = names(Nh_strata))
   r<-factor(r, levels = order)
@@ -131,6 +155,9 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
             call. = FALSE)
   }
   nh<-nh[sapply(paste0("^",names(nh),"$"), grep, names(Nh_strata))] # match order of Nh_strata
+  if(any(nh>Nh_strata)){
+    warning("Some strata have more sample units than 'Nh_strata' and NaNs may be produced. 'Nh_strata' must be the number of sampling units (e.g., pixels) in each stratum.", call. = FALSE)
+  }
   incl<-nh/Nh_strata
   incl<-sapply(s, function(x){incl[x]})
   
@@ -139,6 +166,7 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
   ## overall accuracy, and proportion of area in cell (i, j) of the error matrix
 
   sample<-data.frame(s=s, m=m, r=r, incl=incl)
+  if(!missing(w)) sample$w<-weights
   classes1<-levels(s)
   classes2<-levels(m)
   classes3<-levels(r)
@@ -146,11 +174,13 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
   
   # yu for overall accuracy (eq 12 of Stehman 2014) 
   sample$yu_O<-as.numeric(m==r)
+  if(!missing(w)) sample$yu_O<-sample$yu_O * sample$w
   
   # yu for proportion of area of reference classes (eq 14 of Stehman 2014)
   for (i in 1:length(classes3)){
     col_name<-paste0("yu_r",i)
     sample[, col_name]<-as.numeric(sample$r==classes3[i])
+    if(!missing(w)) sample[, col_name]<-sample[, col_name] * sample$w
   }
   
   # yu for proportion of area with map class i and reference class j (eq 16 of Stehman 2014) 
@@ -158,11 +188,13 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
     for (j in 1:length(classes3)){
       col_name<-paste0("yu_m",i,"r",j)
       sample[, col_name]<-as.numeric(sample$m==classes2[i] & sample$r==classes3[j])
+      if(!missing(w)) sample[, col_name]<-sample[, col_name] * sample$w
     }
   }
   
   # Overall accuracy
   O<-eq2("yu_O")
+  if(!missing(w)) O<-O/eq2("w")
   
   # proportion of area of reference classes
   A<-NULL
@@ -171,6 +203,7 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
     A<-c(A, eq2(col_name))
   }
   names(A)<-order
+  if(!missing(w)) A<-A/eq2("w")
   
   # proportion of area with map class i and reference class j
   M<-matrix(nrow = length(classes2), ncol = length(classes3))
@@ -179,33 +212,47 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
       col_name<-paste0("yu_m",i,"r",j)
       M[i, j]<-ifelse(eq2(col_name)==0, NA, eq2(col_name))
     }
+    if(!missing(w)) M[i,]<-M[i,]/eq2("w")
   }
   
+  
   # Standard error (SE) for overall accuracy
-  tmean<-stats::aggregate(.~sample$s, data=sample, mean)
   tvar<-stats::aggregate(.~sample$s, data=sample, stats::var)
   tvar[is.na(tvar)]<-0 # when sample$s includes strata with one point only, var is NA, which is replaced by zero
   
-  Vo<-eq25(Nh=Nh_strata, nh=nh, var=tvar$yu_O)
+  if(!missing(w)){
+    Xw<-sum(sample$w/sample$incl)
+    cov_w<-function(col_name){
+      o<-sapply(classes1, function(k){
+        d<-sample[sample$s==k,]
+        stats::cov(d[,col_name], d$w)
+      })
+      o[is.na(o)]<-0
+      o
+    }
+  }
+  
+  if(missing(w)){
+    Vo<-eq25(Nh=Nh_strata, nh=nh, var=tvar$yu_O)
+  }else{
+    Vo<-eq28(R=O, X=Xw, Nh=Nh_strata, nh=nh,
+             vary=tvar$yu_O, varx=tvar$w, cov=cov_w("yu_O"))
+  }
   SEo<-sqrt(Vo)
   
   # Standard error (SE) for proportion of area of reference classes
   Va<-NULL
   for(i in 1:length(classes3)){
-    Va<-c(Va, eq25(Nh=Nh_strata, nh=nh, var=tvar[,paste0("yu_r",i)])) 
+    col_name<-paste0("yu_r",i)
+    if(missing(w)){
+      Va<-c(Va, eq25(Nh=Nh_strata, nh=nh, var=tvar[,col_name]))
+    }else{
+      Va<-c(Va, eq28(R=A[i], X=Xw, Nh=Nh_strata, nh=nh,
+                     vary=tvar[,col_name], varx=tvar$w, cov=cov_w(col_name)))
+    }
   }
   SEa<-sqrt(Va)
   names(SEa)<-classes3
-  
-  # Standard error (SE) for proportion of area with map class i and reference class j ###### isto não aparece no exemplo numérico do artigo!
-  Vm<-matrix(data=0, nrow = length(classes2), ncol = length(classes3))
-  for (i in 1:length(classes2)){
-    for (j in 1:length(classes3)){
-      col_name<-paste0("yu_m",i,"r",j)
-      Vm[i, j]<-Vm[i, j]+eq25(Nh=Nh_strata, nh=nh, var=tvar[,col_name])
-    }
-  }
-  SEm<-sqrt(Vm)
   
   
   
@@ -216,24 +263,28 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
   for (i in 1:length(classes2)){
     col_name<-paste0("yu_U",i)
     sample[, col_name]<-as.numeric(sample$m==classes2[i] & sample$m==sample$r)
+    if(!missing(w)) sample[, col_name]<-sample[, col_name] * sample$w
   }
   for (i in 1:length(classes2)){
     col_name<-paste0("xu_U",i)
     sample[, col_name]<-as.numeric(sample$m==classes2[i])
+    if(!missing(w)) sample[, col_name]<-sample[, col_name] * sample$w
   }
   
   # yu for producer's accuracy
   for (i in 1:length(classes3)){
     col_name<-paste0("yu_P",i)
     sample[, col_name]<-as.numeric(sample$r==classes3[i] & sample$r==sample$m)
+    if(!missing(w)) sample[, col_name]<-sample[, col_name] * sample$w
   }
   for (i in 1:length(classes3)){
     col_name<-paste0("xu_P",i)
     sample[, col_name]<-as.numeric(sample$r==classes3[i])
+    if(!missing(w)) sample[, col_name]<-sample[, col_name] * sample$w
   }
   
   # user's accuracy
-  tmean<-stats::aggregate(.~sample$s, data=sample, mean)      # repeat this
+  tmean<-stats::aggregate(.~sample$s, data=sample, mean)
   tvar<-stats::aggregate(.~sample$s, data=sample, stats::var) # repeat this
   tvar[is.na(tvar)]<-0 # when sample$s includes strata with one point only, var is NA, which is replaced by zero
   
@@ -259,7 +310,7 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
     R_P_dominator<-c(R_P_dominator, sum(tmean[,col_name]*Nh_strata))
   }
   P<-R_P_numerator/R_P_dominator
-  names(P)<-classes2
+  names(P)<-classes3
   P[is.nan(P)]<-NA # when m has a class not found in r
 
   
@@ -268,7 +319,6 @@ stehman2014<-function(s, r, m, Nh_strata, margins=TRUE, order){
   covP<-list()
   covU<-list()
   for(i in 1:length(classes1)){
-    # a<-which(sample$m==classes1[i])
     strata[[i]]<-sample[sample$s==classes1[i],]
     covP[[i]]<-list()
     covU[[i]]<-list()

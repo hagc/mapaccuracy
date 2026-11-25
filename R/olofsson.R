@@ -6,6 +6,10 @@
 #' Argument \code{Nh} must be named to explicitly and clearly identify the class that each area refers to.
 #' The order of \code{Nh} will be used for displaying the results.
 #' 
+#' Argument \code{w} is optional and accepts (positive) weights for each of the sample units.
+#' If used, it has impact on all estimates (overall accuracy, producer's accuracy, user's
+#' accuracy, area and error matrix) and on their standard errors.
+#' 
 #' In the error matrix returned, the entries corresponding to no observed cases will present
 #' \code{NA} rather than \code{0}. This is to emphasize the difference between the absence of cases
 #' and the presence of some (few) cases that represent a very small proportion of area (almost
@@ -17,6 +21,7 @@
 #'           It must be named (see details).
 #' @param margins logical. If \code{FALSE}, the error matrix produced includes no margins (sum of the 
 #'                rows and columns).
+#' @param w numeric vector (optional). Observation weights (values greater than zero).
 #'
 #' @return A list with the estimates and error matrix.
 #' \item{OA}{overall accuracy}
@@ -27,7 +32,7 @@
 #' \item{SEua}{standard error of UA}
 #' \item{SEpa}{standard error of PA}
 #' \item{SEa}{standard error of area proportion}
-#' \item{matrix}{confusion error (area proportion). Rows and columns represent map and reference class labels, respectively}
+#' \item{matrix}{error matrix (area proportion). Rows and columns represent map and reference class labels, respectively}
 #'
 #' @references
 #' Olofsson, P.; Foody, G. M.; Stehman, S. V.; Woodcock, C. E. (2013). Making better use of accuracy data in land change studies: Estimating accuracy and area and quantifying uncertainty using stratified estimation. \emph{Remote Sens. Environ.}, 129, 122-131.
@@ -130,9 +135,12 @@
 #' # can add classes not found neither in r nor m
 #' Nh<-c(Nh, "9"=0)
 #' olofsson(r, m, Nh)
+#' 
+#' # sampling units can be weighted
+#' olofsson(r, m, Nh, w=1:length(m))
 #' @export
-olofsson<-function(r, m, Nh, margins=TRUE){
-
+olofsson<-function(r, m, Nh, margins=TRUE, w){
+  
   # check arguments
   r<-unlist(r)
   m<-unlist(m)
@@ -141,7 +149,13 @@ olofsson<-function(r, m, Nh, margins=TRUE){
   if(length(names(Nh))>length(unique(names(Nh)))) stop("Repeated names detected in Nh.", call. = FALSE)
   .check_labels(names(Nh), m)
   .check_length(r,m)
-
+  if(!missing(w)){
+    wts<-as.numeric(w)
+    if(length(wts)!=length(m)) stop("'w' must have the same length as 'm'.", call. = FALSE)
+    if(any(is.na(wts))) stop("NA detected in 'w'.", call. = FALSE)
+    if(any(!is.finite(wts) | wts<=0)) stop("'w' must contain finite positive values.", call. = FALSE)
+  }
+  
   # convert arguments
   temp<-as.character(setdiff(r,names(Nh)))
   if(length(temp)>0){
@@ -150,25 +164,32 @@ olofsson<-function(r, m, Nh, margins=TRUE){
   }
   r<-factor(r, levels = names(Nh))
   m<-factor(m, levels = names(Nh))
-
-
+  
+  
   # error matrix
   matrix<-table(m, r)
-
+  
   # Sampling settings
   q <-length(Nh)       # number of classes
   A <-sum(Nh)          # total area
   nh<-rowSums(matrix)  # stratum sample size
   Wh<-Nh/A             # map class proportions
-
+  
   # confusion matrix (estimated area proportions)
-  props<-prop.table(matrix,1)
+  if(missing(w)){
+    props<-prop.table(matrix,1)
+  }else{
+    tab<-stats::xtabs(wts ~ m + r)
+    attr(tab, "call")<-NULL
+    class(tab)<-"table"
+    props<-prop.table(tab,1)
+  }
   props[temp, temp]<-0         # when r (reference) has a class not found in m (map)
   props[is.nan(props)]<-NA
   for(j in 1:q){
     props[j,]<-Wh[j]*props[j,]
   }
-
+  
   # Accuracy and area estimates
   OA<-sum(diag(props),na.rm=T)
   UA<-diag(props)/rowSums(props, na.rm = TRUE)
@@ -176,77 +197,119 @@ olofsson<-function(r, m, Nh, margins=TRUE){
   UA[is.nan(UA)]<-NA
   PA[is.nan(PA)]<-NA
   tarea<-colSums(props, na.rm = TRUE)
-
-
-  # standard error of OA
-  VAR_OA<-0
-  for(j in 1:q){
-    temp<-Wh[j]^2*UA[j]*(1-UA[j])/(nh[j]-1)
-    if(is.na(temp)){temp<-0}
-    if(is.infinite(temp)){temp<-0}
-    VAR_OA<-VAR_OA + temp
-  }
-  SEoa<-sqrt(VAR_OA)
-  names(SEoa)<-NULL
-
-
-  # standard error of UA
-  VAR_UA<-NULL
-  for(j in 1:q){
-    temp<-UA[j]*(1-UA[j])/(nh[j]-1)
-    # if(is.na(temp)){temp<-0}
-    # if(is.infinite(temp)){temp<-0}
-    temp[is.nan(temp)]<-0
-    VAR_UA<-c(VAR_UA, temp)
-  }
-  SEua<-sqrt(VAR_UA)
-
-
-  # standard error of PA
-  N.j<-NULL
-  for(j in 1:q){
-    temp<-0
-    for(i in 1:q){
-      temp<-sum(temp,Nh[i]/nh[i]*matrix[i,j],na.rm=T)
+  
+  
+  # standard errors
+  if(missing(w)){
+    
+    # standard error of OA
+    VAR_OA<-0
+    for(j in 1:q){
+      temp<-Wh[j]^2*UA[j]*(1-UA[j])/(nh[j]-1)
+      if(is.na(temp)){temp<-0}
+      if(is.infinite(temp)){temp<-0}
+      VAR_OA<-VAR_OA + temp
     }
-    N.j<-c(N.j, temp)
-  }
-
-  VAR_PA<-NULL
-  for(j in 1:q){
-    # temp1<-N.j[j]^2*(1-PA[j])^2*UA[j]*(1-UA[j])/(nh[j]-1)
-    temp1<-Nh[j]^2*(1-PA[j])^2*UA[j]*(1-UA[j])/(nh[j]-1)
-    if(is.na(temp1)){temp1<-0}
-    if(is.infinite(temp1)){temp1<-0}
-    temp2<-0
-    seque<-1:q
-    seque<-seque[-j]
-    for(i in seque){
-      temp2<-sum(temp2, Nh[i]^2*matrix[i,j]/nh[i]*(1-matrix[i,j]/nh[i])/(nh[i]-1), na.rm=T)
+    SEoa<-sqrt(VAR_OA)
+    names(SEoa)<-NULL
+    
+    
+    # standard error of UA
+    VAR_UA<-NULL
+    for(j in 1:q){
+      temp<-UA[j]*(1-UA[j])/(nh[j]-1)
+      temp[is.nan(temp)]<-0
+      VAR_UA<-c(VAR_UA, temp)
     }
-    if(is.na(temp2)){temp2<-0}
-    if(is.infinite(temp2)){temp2<-0}
-
-    VAR_PA<-c(VAR_PA, (1/N.j[j]^2)*(temp1+PA[j]^2*temp2))
+    SEua<-sqrt(VAR_UA)
+    
+    
+    # standard error of PA
+    N.j<-NULL
+    for(j in 1:q){
+      temp<-0
+      for(i in 1:q){
+        temp<-sum(temp,Nh[i]/nh[i]*matrix[i,j],na.rm=T)
+      }
+      N.j<-c(N.j, temp)
+    }
+    
+    VAR_PA<-NULL
+    for(j in 1:q){
+      temp1<-Nh[j]^2*(1-PA[j])^2*UA[j]*(1-UA[j])/(nh[j]-1)
+      if(is.na(temp1)){temp1<-0}
+      if(is.infinite(temp1)){temp1<-0}
+      temp2<-0
+      seque<-1:q
+      seque<-seque[-j]
+      for(i in seque){
+        temp2<-sum(temp2, Nh[i]^2*matrix[i,j]/nh[i]*(1-matrix[i,j]/nh[i])/(nh[i]-1), na.rm=T)
+      }
+      if(is.na(temp2)){temp2<-0}
+      if(is.infinite(temp2)){temp2<-0}
+      
+      VAR_PA<-c(VAR_PA, (1/N.j[j]^2)*(temp1+PA[j]^2*temp2))
+    }
+    SEpa<-sqrt(VAR_PA)
+    
+    
+    # standard error of the area
+    VAR_A<-list()
+    for(j in 1:q){
+      a<-Wh^2
+      b<-matrix[,j]/nh
+      c<-(1-matrix[,j]/nh)
+      d<-nh-1
+      VAR_A[[j]]<-sum(a*(b*c/d), na.rm = TRUE)
+    }
+    VAR_A<-unlist(VAR_A)
+    SEa<-sqrt(VAR_A)
+    names(SEa)<-names(Nh)
+    
+  }else{
+    
+    # Within each map class (stratum) i, the estimator is a weighted mean of a variable y.
+    # Without weights, this is exactly p*(1-p)/(n-1) of Olofsson et al.
+    var_wmean<-function(y, wt){
+      n<-length(y)
+      if(n==0) return(NA_real_)       # stratum without samples
+      if(n==1) return(0)              # variance not estimable; set to zero as without weights
+      z<-wt*(y-sum(wt*y)/sum(wt))/mean(wt)
+      stats::var(z)/n
+    }
+    idx<-split(seq_along(m), m)       # sample units of each map class
+    var_strata<-function(y){          # variance of the weighted mean of y in each map class
+      vapply(idx, function(k) var_wmean(y[k], wts[k]), numeric(1))
+    }
+    
+    # standard error of OA
+    v_hit<-var_strata(as.numeric(r==m))
+    SEoa<-sqrt(sum(Wh^2*v_hit, na.rm = TRUE))
+    names(SEoa)<-NULL
+    
+    # standard error of UA
+    SEua<-sqrt(v_hit)
+    names(SEua)<-names(Nh)
+    
+    # standard error of PA (ratio estimator: y = hit of class j, x = reference class j)
+    SEpa<-vapply(1:q, function(j){
+      cl<-levels(r)[j]
+      if(is.na(PA[j]) || tarea[j]==0) return(NA_real_)
+      y<-as.numeric(m==cl & r==cl)
+      x<-as.numeric(r==cl)
+      sqrt(sum(Wh^2*var_strata(y-PA[[j]]*x), na.rm = TRUE))/tarea[[j]]
+    }, numeric(1))
+    names(SEpa)<-names(Nh)
+    
+    # standard error of the area
+    SEa<-vapply(1:q, function(j){
+      y<-as.numeric(r==levels(r)[j])
+      sqrt(sum(Wh^2*var_strata(y), na.rm = TRUE))
+    }, numeric(1))
+    names(SEa)<-names(Nh)
   }
-  SEpa<-sqrt(VAR_PA)
-
-
-  # standard error of the area
-  VAR_A<-list()
-  for(j in 1:q){
-    a<-Wh^2
-    b<-matrix[,j]/nh
-    c<-(1-matrix[,j]/nh)
-    d<-nh-1
-    VAR_A[[j]]<-sum(a*(b*c/d), na.rm = TRUE)
-  }
-  VAR_A<-unlist(VAR_A)
-  SEa<-sqrt(VAR_A)
-  # SEa<-A*SEa
-  names(SEa)<-names(Nh)
-
-
+  
+  
   # Add margins to confusion matrix (potentially useful for exporting only)
   props[matrix==0]<-NA
   if(margins){
@@ -254,7 +317,7 @@ olofsson<-function(r, m, Nh, margins=TRUE){
     props<-rbind(props,c(colSums(props, na.rm = TRUE)))
     colnames(props)[ncol(props)]<-"sum"; rownames(props)[nrow(props)]<-"sum"
   }
-
+  
   # return
   list(OA=OA,
        UA=UA,

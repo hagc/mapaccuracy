@@ -1,3 +1,8 @@
+# Version 0.1.3
+
+* New argument 'w' in `olofsson` and `stehman2014` for weighting estimators.
+
+
 # Version 0.1.2
 
 * `olofsson` and `stehman2014` were unable to work when the number of map classes and reference classes were not the same (e.g., a very poor map not representing all the classes found in the reference).

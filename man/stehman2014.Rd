@@ -5,7 +5,7 @@
 \title{Thematic map accuracy and area under stratified random sampling when the strata differ from 
 the map classes.}
 \usage{
-stehman2014(s, r, m, Nh_strata, margins = TRUE, order)
+stehman2014(s, r, m, Nh_strata, margins = TRUE, order, w)
 }
 \arguments{
 \item{s}{character vector. Strata class labels. The object will be coerced to factor.}
@@ -14,13 +14,15 @@ stehman2014(s, r, m, Nh_strata, margins = TRUE, order)
 
 \item{m}{character vector. Map class labels. The object will be coerced to factor.}
 
-\item{Nh_strata}{numeric vector. Number of pixels forming each stratum. It must be named (see details).}
+\item{Nh_strata}{numeric vector. Number of sampling units (e.g., pixels) forming each stratum. It must be named (see details).}
 
 \item{margins}{logical. If \code{FALSE}, the error matrix produced includes no margins (sum of the 
 rows and columns).}
 
 \item{order}{(optional) character vector. Classes to be displayed in the results and their sequence.
 If missing, equal to \code{sort(unique(c(r,m)))}.}
+
+\item{w}{numeric vector (optional). Observation weights (values greater than zero).}
 }
 \value{
 A list with the estimates and error matrix.
@@ -32,7 +34,7 @@ A list with the estimates and error matrix.
 \item{SEua}{standard error of UA}
 \item{SEpa}{standard error of PA}
 \item{SEa}{standard error of area proportion}
-\item{matrix}{confusion error (area proportion). Rows and columns represent map and reference class labels, respectively}
+\item{matrix}{error matrix (area proportion). Rows and columns represent map and reference class labels, respectively}
 }
 \description{
 Implements the estimators described in Stehman (2014) for overall accuracy, producer's 
@@ -41,7 +43,21 @@ accuracy, user's accuracy, and area. Includes precision estimates.
 \details{
 Argument \code{Nh_strata} must be named to explicitly and clearly identify the stratum that 
 each entry refers to. The names of \code{Nh_strata} are expected to match the strata class 
-labels of argument \code{s}.
+labels of argument \code{s}. 
+
+Argument \code{Nh_strata} must be the number of sampling units (e.g., pixels) in each 
+stratum, and not the area (e.g., in square meters or hectares) or the proportion of the 
+strata. The estimates (overall accuracy, user's accuracy, producer's accuracy, area and error 
+matrix) depend only on the relative size of the strata and are not affected by this choice. 
+The standard errors are, because the finite population correction compares the sample size 
+with the number of sampling units in each stratum. Other units produce incorrect standard 
+errors. If a stratum has more sample units than \code{Nh_strata}, a warning is issued and 
+the standard errors are not valid (possibly \code{NaN}). If only the areas are available, 
+divide them by the area of a sampling unit.
+
+Argument \code{w} is optional and accepts (positive) weights for each of the sample units.
+If used, it has impact on all estimates (overall accuracy, producer's accuracy, user's
+accuracy, area and error matrix) and on their standard errors.
 
 In the error matrix returned, the entries corresponding to no observed cases will present
 \code{NA} rather than 0. This is to emphasize the difference between the absence of cases
@@ -49,7 +65,7 @@ and the presence of some (few) cases that represent a very small proportion of a
 zero) and thus possibly rounded to zero. However, \code{NA} means zero proportion of area.
 }
 \examples{
-# Numerical example in Stheman (2014)
+# Numerical example in Stehman (2014)
 s<-c(rep("A",10), rep("B",10), rep("C",10), rep("D",10))
 m<-c(rep("A",7), rep("B",3), "A", rep("B",11), rep("C",6), "B", "B", rep("D",10))
 r<-c(rep("A",5), "C", "B", "A", "B", "C", "A", rep("B",5), "A", "A", "B", 
@@ -90,6 +106,10 @@ stehman2014(s, r, m, Nh_strata)
 
 # can add classes not found neither in r nor m
 stehman2014(s, r, m, Nh_strata, order=c("A","B","C","D","YY","ZZ"))
+
+# sampling units can be weighted
+stehman2014(s, r, m, Nh_strata, w=1:length(m))
+
 }
 \references{
 Stehman, S. V. (2014). Estimating area and map accuracy for stratified random sampling when the strata are different from the map classes. \emph{Int. J. Remote Sens.}, 35, 4923-4939.
